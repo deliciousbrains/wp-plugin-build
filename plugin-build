@@ -1,0 +1,105 @@
+#!/usr/bin/php
+<?php
+
+$script_dir = dirname( __FILE__ );
+$run_dir = getcwd();
+$build_dir = "$run_dir/build";
+
+if ( !is_dir( $build_dir ) ) {
+	echo "Cannot find 'build' folder in the current folder.\n";
+	exit;
+}
+
+if ( $argc != 3 ) {
+	die( "Usage: $argv[0] <plugin-slug>[.php] <version>\n" );
+}
+
+$plugin_slug = basename( $argv[1], '.php' );
+$version = $argv[2];
+
+$tmp_dir = "$build_dir/tmp";
+$dest_dir = "$tmp_dir/$plugin_slug";
+
+$main_plugin_file = "$run_dir/$plugin_slug.php";
+if ( !file_exists( $main_plugin_file ) ) {
+	echo "Cannot find main plugin file $main_plugin_file.\n";
+	exit;
+}
+
+/*
+ * version-check.php example:
+ * $version_checks = array(
+ * 		"$plugin_slug.php" => array(
+ * 			'@Version:\s+(.*)\n@' => 'header'
+ * 		)
+ * );
+ *
+*/
+$version_check_hook = "$build_dir/version-check.php";
+if ( file_exists( $version_check_hook ) ) {
+	include $version_check_hook;
+
+	$messages = '';
+
+	foreach ( $version_checks as $file => $regexes ) {
+		$file = "$run_dir/$file";
+
+		if ( !file_exists( $file ) ) {
+			$messages .= "Whoa! Couldn't find $file\n";
+			continue;
+		}
+
+		$file_content = file_get_contents( $file );
+
+		if ( !$file_content ) {
+			$messages .= "Whoa! Could not read contents of $file\n";
+			continue;
+		}
+
+		foreach ( $regexes as $regex => $context ) {
+			if ( !preg_match( $regex, $file_content, $matches ) ) {
+				$messages .= "Whoa! Couldn't find $context version number in $file\n";
+				continue;
+			}
+
+			if ( trim( $matches[1] ) != trim( $version ) ) {
+				$messages .= "Whoa! " . ucfirst( $context ) . " version number is currently $matches[1] in $file\n";
+			}
+		}
+	}
+
+	if ( $messages ) {
+		die( $messages );
+	}
+}
+
+`rm -Rf $tmp_dir 2>/dev/null`;
+
+mkdir( $tmp_dir );
+mkdir( $dest_dir );
+
+$filter_file = "$build_dir/filter";
+
+// Use this hook to override the default filter file
+$filter_hook = "$build_dir/filter.php";
+if ( file_exists( $filter_hook ) ) {
+	include $filter_hook;
+}
+
+`rsync -r --filter=". $filter_file" $run_dir/* $dest_dir`;
+
+chdir( $tmp_dir );
+
+// Use this hook to do anything before we zip up
+$pre_zip_hook = "$build_dir/pre-zip.php";
+if ( file_exists( $pre_zip_hook ) ) {
+	include $pre_zip_hook;
+}
+
+$zip_name = "$plugin_slug-$version.zip";
+
+echo `zip -r $zip_name $plugin_slug`;
+
+`mv $zip_name $run_dir/`;
+
+`rm -Rf $tmp_dir`;
