@@ -1,26 +1,35 @@
 #!/usr/bin/php
 <?php
+if ( $argc != 2 ) {
+	die( "Usage: " . basename( $argv[0] ) . " <version>\nRun from the folder containing the build config files.\n" );
+}
 
-$script_dir = dirname( __FILE__ );
-$run_dir = getcwd();
-$build_dir = "$run_dir/build";
+$version = $argv[1];
 
-if ( !is_dir( $build_dir ) ) {
-	echo "Cannot find 'build' folder in the current folder.\n";
+$build_cfg_dir = getcwd();
+$parent_dir = dirname( $build_cfg_dir );
+
+// Defaults - override in config.php
+$src_dir = $parent_dir;
+$zip_dir = $build_cfg_dir;
+$tmp_dir = "$build_cfg_dir/tmp";
+$cleanup = true;
+
+$config_file = "$build_cfg_dir/config.php";
+if ( ! file_exists( $config_file ) ) {
+	echo "Could not find the config.php file in the current folder.\n";
 	exit;
 }
 
-if ( $argc != 3 ) {
-	die( "Usage: $argv[0] <plugin-slug>[.php] <version>\n" );
+include $config_file;
+
+if ( ! isset( $plugin_slug ) ) {
+	$plugin_slug = basename( $src_dir );
 }
 
-$plugin_slug = basename( $argv[1], '.php' );
-$version = $argv[2];
-
-$tmp_dir = "$build_dir/tmp";
 $dest_dir = "$tmp_dir/$plugin_slug";
 
-$main_plugin_file = "$run_dir/$plugin_slug.php";
+$main_plugin_file = "$src_dir/$plugin_slug.php";
 if ( !file_exists( $main_plugin_file ) ) {
 	echo "Cannot find main plugin file $main_plugin_file.\n";
 	exit;
@@ -35,14 +44,14 @@ if ( !file_exists( $main_plugin_file ) ) {
  * );
  *
 */
-$version_check_hook = "$build_dir/version-check.php";
+$version_check_hook = "$build_cfg_dir/version-check.php";
 if ( file_exists( $version_check_hook ) ) {
 	include $version_check_hook;
 
 	$messages = '';
 
 	foreach ( $version_checks as $file => $regexes ) {
-		$file = "$run_dir/$file";
+		$file = "$src_dir/$file";
 
 		if ( !file_exists( $file ) ) {
 			$messages .= "Whoa! Couldn't find $file\n";
@@ -73,25 +82,28 @@ if ( file_exists( $version_check_hook ) ) {
 	}
 }
 
-`rm -Rf $tmp_dir 2>/dev/null`;
+`rm -Rf $dest_dir 2>/dev/null`;
 
-mkdir( $tmp_dir );
+if ( ! is_dir( $tmp_dir ) ) {
+	mkdir( $tmp_dir );
+}
+
 mkdir( $dest_dir );
 
-$filter_file = "$build_dir/filter";
+$filter_file = "$build_cfg_dir/filter";
 
 // Use this hook to override the default filter file
-$filter_hook = "$build_dir/filter.php";
+$filter_hook = "$build_cfg_dir/filter.php";
 if ( file_exists( $filter_hook ) ) {
 	include $filter_hook;
 }
 
-`rsync -r --filter=". $filter_file" $run_dir/* $dest_dir`;
+`rsync -r --filter=". $filter_file" $src_dir/* $dest_dir`;
 
 chdir( $tmp_dir );
 
 // Use this hook to do anything before we zip up
-$pre_zip_hook = "$build_dir/pre-zip.php";
+$pre_zip_hook = "$build_cfg_dir/pre-zip.php";
 if ( file_exists( $pre_zip_hook ) ) {
 	include $pre_zip_hook;
 }
@@ -100,6 +112,10 @@ $zip_name = "$plugin_slug-$version.zip";
 
 echo `zip -r $zip_name $plugin_slug`;
 
-`mv $zip_name $run_dir/`;
+if ( $zip_dir != $tmp_dir ) {
+	`mv $zip_name $zip_dir/`;
+}
 
-`rm -Rf $tmp_dir`;
+if ( $cleanup ) {
+	`rm -Rf $dest_dir`;
+}
