@@ -29,7 +29,10 @@ if ( ! isset( $plugin_slug ) ) {
 
 $dest_dir = "$tmp_dir/$plugin_slug";
 
-$main_plugin_file = "$src_dir/$plugin_slug.php";
+if ( ! isset( $main_plugin_file ) ) {
+	$main_plugin_file = "$src_dir/$plugin_slug.php";
+}
+
 if ( !file_exists( $main_plugin_file ) ) {
 	echo "Cannot find main plugin file $main_plugin_file.\n";
 	exit;
