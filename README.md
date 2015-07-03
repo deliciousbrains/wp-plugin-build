@@ -34,6 +34,9 @@ You need to create a `build` folder within your plugin folder. It houses
 configuration and hook files to customize the build. It also houses temporary
 files when running a build.
 
+Inside the `build` folder, you need a `config.php` file. This can be empty but
+it must exist.
+
 All of these following files are optional:
 
 **version-check.php** - PHP array of regular expressions to check if version
