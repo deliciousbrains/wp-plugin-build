@@ -111,7 +111,9 @@ if ( file_exists( $pre_zip_hook ) ) {
 	include $pre_zip_hook;
 }
 
-$zip_name = "$plugin_slug-$version.zip";
+if ( ! isset( $zip_name ) ) {
+	$zip_name = "$plugin_slug-$version.zip";
+}
 
 echo `zip -r $zip_name $plugin_slug`;
 
