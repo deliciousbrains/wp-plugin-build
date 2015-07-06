@@ -1,10 +1,17 @@
 #!/usr/bin/php
 <?php
-if ( $argc != 2 ) {
+if ( $argc < 2 ) {
 	die( "Usage: " . basename( $argv[0] ) . " <version>\nRun from the folder containing the build config files.\n" );
 }
 
 $version = $argv[1];
+
+$publish = false;
+foreach ( $argv as $arg ) {
+	if ( '-p' === $arg ) {
+		$publish = true;
+	}
+}
 
 $build_cfg_dir = getcwd();
 $parent_dir = dirname( $build_cfg_dir );
