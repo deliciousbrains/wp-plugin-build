@@ -85,7 +85,7 @@ if ( file_exists( $version_check_hook ) ) {
 	}
 }
 
-`rm -Rf $dest_dir 2>/dev/null`;
+`rm -Rf "$dest_dir" 2>/dev/null`;
 
 if ( ! is_dir( $tmp_dir ) ) {
 	mkdir( $tmp_dir );
@@ -101,7 +101,7 @@ if ( file_exists( $filter_hook ) ) {
 	include $filter_hook;
 }
 
-`rsync -r --filter=". $filter_file" $src_dir/* $dest_dir`;
+`rsync -r --filter=". $filter_file" "$src_dir"/* "$dest_dir"`;
 
 chdir( $tmp_dir );
 
@@ -120,9 +120,9 @@ if ( ! isset( $zip_name ) ) {
 echo `zip -r $zip_name $plugin_slug`;
 
 if ( $zip_dir != $tmp_dir ) {
-	`mv $zip_name $zip_dir/`;
+	`mv $zip_name "$zip_dir"/`;
 }
 
 if ( $cleanup ) {
-	`rm -Rf $dest_dir`;
+	`rm -Rf "$dest_dir"`;
 }
