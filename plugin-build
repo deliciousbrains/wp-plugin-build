@@ -124,9 +124,9 @@ if ( ! isset( $zip_name ) ) {
 	$zip_name = "$zip_name-$version.zip";
 }
 
-if ( file_exists( $zip_name ) ) {
+if ( file_exists( $zip_dir . '/' . $zip_name ) ) {
 	// Ensure we don't add files to an existing zip
-	unlink( $zip_name );
+	unlink( $zip_dir . '/' . $zip_name );
 }
 
 echo `zip -r $zip_name $plugin_slug`;
