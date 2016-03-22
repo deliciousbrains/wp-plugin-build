@@ -124,7 +124,7 @@ if ( ! isset( $zip_name ) ) {
 	$zip_name = "$zip_name-$version.zip";
 }
 
-echo `zip -r $zip_name $plugin_slug`;
+echo `zip -r $zip_name $plugin_slug -x "*.DS_Store"`;
 
 if ( $zip_dir != $tmp_dir ) {
 	`mv $zip_name "$zip_dir"/`;
