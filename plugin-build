@@ -125,6 +125,7 @@ if ( ! isset( $zip_name ) ) {
 }
 
 if ( file_exists( $zip_dir . '/' . $zip_name ) ) {
+	echo "\nRemoving existing zip: " . $zip_dir . '/' . $zip_name . "\n\n" ;
 	// Ensure we don't add files to an existing zip
 	unlink( $zip_dir . '/' . $zip_name );
 }
