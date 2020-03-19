@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 <?php
 if ( $argc < 2 ) {
 	die( "Usage: " . basename( $argv[0] ) . " <version>\nRun from the folder containing the build config files.\n" );
