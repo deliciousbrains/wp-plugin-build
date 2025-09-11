@@ -82,7 +82,7 @@ if ( file_exists( $version_check_hook ) ) {
 			}
 
 			if ( trim( $matches[1] ) != trim( $version ) ) {
-				$messages .= "Whoa! " . ucfirst( $context ) . " version number is currently $matches[1] in $file\n";
+				$messages .= 'Whoa! ' . ucfirst( $context ) . ' version number is currently ' . trim( $matches[1] ) . " in $file\n";
 			}
 		}
 	}
